@@ -9,5 +9,8 @@ EditorBuildSettings:
     path: Assets/Demo.unity
     guid: e01beb0c312fb2a438b266e574172806
   - enabled: 1
-    path: Assets/SampleScene.unity
+    path: Assets/BrowserInUI.unity
     guid: 8cd4deb407d7ccf45b564b577be49452
+  - enabled: 1
+    path: Assets/BrowserInGame.unity
+    guid: 99b8719e8ee2753428de47bd788823ae

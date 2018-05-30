@@ -1,14 +1,151 @@
-﻿using Aleab.CefUnity.Structs;
+﻿
+using UnityEngine;
+using Xilium.CefGlue;
+
 using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using UnityEngine;
-using Xilium.CefGlue;
 
-namespace Aleab.CefUnity
+
+namespace UnityCef
 {
+    [DisallowMultipleComponent]
+    public class UnityCefEngine : MonoBehaviour
+    {
+        public static bool shouldQuit = false;
+        static bool cefStarted = false;
+
+        bool iStartedCef = false;
+
+        private void Awake()
+        {
+            this.StartCef();
+        }
+
+        private void OnDestroy()
+        {
+            this.Quit();
+        }
+
+        private void StartCef()
+        {
+            if (cefStarted)
+                return;
+#if !UNITY_EDITOR
+
+#if UNITY_EDITOR
+            CefRuntime.Load("./Assets/Plugins/x86_64");
+#else
+            CefRuntime.Load();
+#endif
+
+
+            var cefMainArgs = new CefMainArgs(new string[] { });
+            var cefApp = new OffscreenCEFClient.OffscreenCEFApp();
+
+            // This is where the code path diverges for child processes.
+            //if (CefRuntime.ExecuteProcess(cefMainArgs, cefApp, IntPtr.Zero) != -1)
+            //    Debug.LogError("Could not start the secondary process.");
+
+            var cefSettings = new CefSettings
+            {
+                //ExternalMessagePump = true,
+                MultiThreadedMessageLoop = false,
+                SingleProcess = true,
+                LogSeverity = CefLogSeverity.Verbose,
+                LogFile = "cef.log",
+                WindowlessRenderingEnabled = true,
+                NoSandbox = true,
+                ExternalMessagePump = true,
+            };
+
+            // Start the browser process (a child process).
+            CefRuntime.Initialize(cefMainArgs, cefSettings, cefApp, IntPtr.Zero);
+#endif
+            DontDestroyOnLoad(this.gameObject.transform.root.gameObject);
+
+            iStartedCef = true;
+            cefStarted = true;
+            
+        }
+
+        private void Quit()
+        {
+            if (iStartedCef)
+            {
+                shouldQuit = true;
+                this.StopAllCoroutines();
+                CefRuntime.Shutdown();
+            }
+        }
+
+    }
+
+    [Serializable]
+    public struct Size
+    {
+        [SerializeField]
+        private int _width;
+
+        [SerializeField]
+        private int _height;
+
+        public int Width
+        {
+            get { return this._width; }
+            private set { this._width = value; }
+        }
+
+        public int Height
+        {
+            get { return this._height; }
+            private set { this._height = value; }
+        }
+
+        public float Ratio { get { return (float)this.Width / this.Height; } }
+
+        public Size(int width, int heigth)
+        {
+            this._width = width;
+            this._height = heigth;
+        }
+
+        public static Size operator *(int k, Size s)
+        {
+            return new Size(k * s.Width, k * s.Height);
+        }
+
+        public static Size operator *(Size s, int k)
+        {
+            return k * s;
+        }
+
+        public static bool operator ==(Size lhs, Size rhs)
+        {
+            return lhs.Width == rhs.Width && lhs.Height == rhs.Height;
+        }
+
+        public static bool operator !=(Size lhs, Size rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(Size))
+                return false;
+            return this == (Size)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Width ^ this.Height;
+        }
+    }
+
+
     internal class OffscreenCEFClient : CefClient
     {
         private readonly OffscreenLoadHandler _loadHandler;

@@ -1,8 +1,7 @@
-﻿using Aleab.CefUnity.Structs;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-namespace Aleab.CefUnity.UnityEditor
+namespace UnityCef
 {
     [CustomPropertyDrawer(typeof(Size))]
     public class SizePropertyDrawer : PropertyDrawer
