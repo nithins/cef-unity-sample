@@ -6,7 +6,21 @@ using Xilium.CefGlue;
 
 namespace UnityCef
 {
-    //[RequireComponent(typeof(MeshRenderer))]
+    /// <summary>
+    /// Class responsible for creating and updating a CEF browser instance. 
+    /// </summary>
+    /// <remarks>
+    /// Add this to any gameobject having a MeshRenderer or RawImage component.
+    /// 
+    /// 1. When any Browser instance is in the scene the messagePump needs to be 
+    ///    on continuously. One pump is enough for all Browser instances. Hence the
+    ///    Pump is switched on by the first browser instance that is created. However,
+    ///    it is swithced off by this instance as well. Hence if you have scenarios
+    ///    with multiple which are dynamically created/destroyed, this could be an issue. 
+    ///    
+    /// 2. Other design considerations, see <see cref="UnityCefEngine"/>'s remarks. 
+    /// 
+    /// </remarks>
     public class UnityCefBrowser : MonoBehaviour
     {
 

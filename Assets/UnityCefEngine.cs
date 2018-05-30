@@ -11,6 +11,29 @@ using System.Security;
 
 namespace UnityCef
 {
+    /// <summary>
+    /// Class responsible for loading and managing the life cycle Xilium.CefGlue. 
+    /// </summary>
+    /// <remarks>
+    /// Add this to an empty game object in every scene that uses <see cref="UnityCefBrowser"/>
+    /// 
+    /// 
+    /// 1. Currently Xilium.CefGlue can only be instantiated once in any process
+    ///    Hence, it does not work well in unity editor, causing it to crash on multiple play attempts.
+    ///    For this reason, its interfacing with CefGlue is done only on build versions. 
+    /// 
+    /// 2. Only one instance should ever be created by the entire application. This instance must persist
+    ///    across scene loads. Thus it should be attached to an empty gameobject. The first instance that 
+    ///    gets created survives across all subsequent scenes. Others remain dummies that dont do anything
+    ///    and die along with the scene. 
+    /// 
+    /// 3. The first unique instance which survives across scenes will shutdown on application quit. However,
+    ///    OnApplicationQuit is called before OnDestroy. Browser instance might still be around and they will have 
+    ///    to shut down first. Hence they will have to quit first in OnApplicationQuit. And this will quit OnDestroy only. 
+    ///    For normal BrowserInstance shutdowns, they will quit OnDestroy as well. Hence, in browser instances, Quit is
+    ///    called on OnDestroy and OnApplicationQuit.
+    /// </remarks>
+
     [DisallowMultipleComponent]
     public class UnityCefEngine : MonoBehaviour
     {
@@ -76,8 +99,9 @@ namespace UnityCef
             if (iStartedCef)
             {
                 shouldQuit = true;
-                this.StopAllCoroutines();
+#if !UNITY_EDITOR
                 CefRuntime.Shutdown();
+#endif
             }
         }
 
@@ -192,7 +216,7 @@ namespace UnityCef
             }
         }
 
-        #region Interface
+#region Interface
 
         protected override CefRenderHandler GetRenderHandler()
         {
@@ -204,9 +228,9 @@ namespace UnityCef
             return this._loadHandler;
         }
 
-        #endregion Interface
+#endregion Interface
 
-        #region Handlers
+#region Handlers
 
         internal class OffscreenLoadHandler : CefLoadHandler
         {
@@ -320,7 +344,7 @@ namespace UnityCef
             }
         }
 
-        #endregion Handlers
+#endregion Handlers
 
         public class OffscreenCEFApp : CefApp
         {
